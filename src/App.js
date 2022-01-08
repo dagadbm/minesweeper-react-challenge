@@ -10,7 +10,7 @@ function App() {
   return (
     <div>
       <Title>Minesweeper!</Title>
-      <BoardGenerator />
+      <BoardGenerator mines={20} size={10} />
     </div>
   );
 }

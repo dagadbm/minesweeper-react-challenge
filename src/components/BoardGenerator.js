@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import React, { useState, useEffect } from 'react';
 import { Mine } from './Mine';
 import { Flag } from './Flag';
 
@@ -19,16 +20,52 @@ const Square = styled.div`
   line-height: 1.5;
 `;
 
+const BOARD = {
+  EMPTY: '',
+  MINE: <Mine />,
+};
+
+const generateBoard = (mines, size) => {
+  const board = Array(size).fill(BOARD.EMPTY)
+    .map(() => Array(size).fill(BOARD.EMPTY));
+
+  setMinesOnBoard(mines, board);
+  return board;
+};
+
+const setMinesOnBoard =  (mines, board) => {
+  let remainingMines = mines;
+  while (remainingMines > 0) {
+    const [x, y] = getRandomMinePosition(board.length);
+    if(board[x][y] === BOARD.EMPTY) {
+      board[x][y] = BOARD.MINE;
+      remainingMines--;
+    }
+  }
+};
+
+function getRandomMinePosition(size) {
+  return [
+    Math.floor(Math.random() * size),
+    Math.floor(Math.random() * size),
+  ];
+}
+
+
 export const BoardGenerator = ({
+  mines,
+  size,
 }) => {
+  const board = generateBoard(mines, size);
+
   return (
     <Board>
-    {[...Array(100).keys()].map((i) => (
-      <Square key={i}>
-        {i === 10 && <Mine />}
-        {i === 25 && <Flag />}
-        {i === 77 ? '4' : ''}
-      </Square>
+    {board.map((_, row) => (
+      board[row].map((_, col) => (
+        <Square key={`${row},${col}`}>
+        {board[row][col]}
+        </Square>
+      ))
     ))}
     </Board>
   );
