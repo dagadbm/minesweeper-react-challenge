@@ -59,10 +59,10 @@ export const BoardGenerator = ({
   const board = generateBoard(mines, size);
 
   return (
-    <Board>
+    <Board data-testid="board">
     {board.map((_, row) => (
       board[row].map((_, col) => (
-        <Square key={`${row},${col}`}>
+        <Square key={`${row},${col}`} data-testid={`square-${row},${col}`}>
         {board[row][col]}
         </Square>
       ))
