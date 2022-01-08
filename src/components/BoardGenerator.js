@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Mine } from './Mine';
 import { Flag } from './Flag';
 
@@ -20,9 +20,30 @@ const Square = styled.div`
   line-height: 1.5;
 `;
 
+const OpenedSquare = styled.div`
+  width: 100%;
+  height: 100%;
+  background: white;
+`;
+
+const ClosedSquare = styled.div`
+  width: 100%;
+  height: 100%;
+  background: grey;
+  &:hover {
+    background: darkgrey;
+  }
+`;
+
 const BOARD = {
-  EMPTY: '',
+  EMPTY: 0,
+  MINE: 1,
+};
+const BOARD_COMPONENTS = {
   MINE: <Mine />,
+  FLAG: <Flag />,
+  CLOSED: <ClosedSquare />,
+  OPENED: <OpenedSquare />
 };
 
 const generateBoard = (mines, size) => {
@@ -56,14 +77,26 @@ export const BoardGenerator = ({
   mines,
   size,
 }) => {
-  const board = generateBoard(mines, size);
+  const board = useRef(generateBoard(mines, size));
+  const [gameBoard, setGameBoard] = useState(
+    board.current.map((_, row) =>
+      board.current[row].map(() => BOARD_COMPONENTS.CLOSED
+    ))
+  );
+
+  const clickedBoard = (event) => {
+    // get the data-cord property from <Square /> parent
+    const [x, y] = event.target.parentNode.dataset.cord.split(',');
+  };
 
   return (
-    <Board data-testid="board">
-    {board.map((_, row) => (
-      board[row].map((_, col) => (
-        <Square key={`${row},${col}`} data-testid={`square-${row},${col}`}>
-        {board[row][col]}
+    <Board data-testid="board" onClick={clickedBoard}>
+    {gameBoard.map((_, row) => (
+      gameBoard[row].map((_, col) => (
+        <Square key={`${row},${col}`}
+        data-testid={`square-${board.current[row][col]}-${row},${col}`}
+        data-cord={`${row},${col}`}>
+        {gameBoard[row][col]}
         </Square>
       ))
     ))}
