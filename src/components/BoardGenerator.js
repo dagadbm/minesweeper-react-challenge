@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import produce from 'immer';
 import React, { useState, useRef } from 'react';
 import { Mine } from './Mine';
 import { Flag } from './Flag';
@@ -65,12 +66,10 @@ const setMinesOnBoard =  (mines, board) => {
   }
 };
 
-function getRandomMinePosition(size) {
-  return [
-    Math.floor(Math.random() * size),
-    Math.floor(Math.random() * size),
-  ];
-}
+const getRandomMinePosition = (size) => [
+  Math.floor(Math.random() * size),
+  Math.floor(Math.random() * size),
+];
 
 
 export const BoardGenerator = ({
@@ -86,7 +85,18 @@ export const BoardGenerator = ({
 
   const clickedBoard = (event) => {
     // get the data-cord property from <Square /> parent
-    const [x, y] = event.target.parentNode.dataset.cord.split(',');
+    const coordinates = event.target.parentNode.dataset?.cord?.split(',');
+
+    if (coordinates === undefined) {
+      return;
+    }
+
+    const [x, y] = coordinates;
+
+    setGameBoard(produce((draft) => {
+      draft[x][y] = BOARD_COMPONENTS.OPENED
+    })
+    );
   };
 
   return (
