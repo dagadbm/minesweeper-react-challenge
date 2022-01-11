@@ -1,6 +1,6 @@
+import useMinesweeper from '../hooks/useMinesweeper';
 import styled from 'styled-components';
-import produce from 'immer';
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { Mine } from './Mine';
 import { Flag } from './Flag';
 
@@ -36,54 +36,32 @@ const ClosedSquare = styled.div`
   }
 `;
 
-const BOARD = {
-  EMPTY: 0,
-  MINE: 1,
-};
-const BOARD_COMPONENTS = {
-  MINE: <Mine />,
-  FLAG: <Flag />,
-  CLOSED: <ClosedSquare />,
-  OPENED: <OpenedSquare />
-};
-
-const generateBoard = (mines, size) => {
-  const board = Array(size).fill(BOARD.EMPTY)
-    .map(() => Array(size).fill(BOARD.EMPTY));
-
-  setMinesOnBoard(mines, board);
-  return board;
-};
-
-const setMinesOnBoard =  (mines, board) => {
-  let remainingMines = mines;
-  while (remainingMines > 0) {
-    const [x, y] = getRandomMinePosition(board.length);
-    if(board[x][y] === BOARD.EMPTY) {
-      board[x][y] = BOARD.MINE;
-      remainingMines--;
-    }
+const renderSquare = (square) => {
+  if (square.hasFlag) {
+    return <Flag />;
   }
+
+  if (!square.hasVisited) {
+    return <ClosedSquare />
+  }
+
+  if (square.hasMine) {
+    return <Mine />;
+  }
+
+  return <OpenedSquare>{square.value}</OpenedSquare>;
 };
 
-const getRandomMinePosition = (size) => [
-  Math.floor(Math.random() * size),
-  Math.floor(Math.random() * size),
-];
 
 
 export const BoardGenerator = ({
   mines,
   size,
 }) => {
-  const board = useRef(generateBoard(mines, size));
-  const [gameBoard, setGameBoard] = useState(
-    board.current.map((_, row) =>
-      board.current[row].map(() => BOARD_COMPONENTS.CLOSED
-    ))
-  );
+  const { board, clickSquare, setFlag } = useMinesweeper({ mines, size });
 
   const clickedBoard = (event) => {
+    event.preventDefault();
     // get the data-cord property from <Square /> parent
     const coordinates = event.target.parentNode.dataset?.cord?.split(',');
 
@@ -91,22 +69,22 @@ export const BoardGenerator = ({
       return;
     }
 
-    const [x, y] = coordinates;
+    const [x, y] = [Number(coordinates[0]), Number(coordinates[1])];
 
-    setGameBoard(produce((draft) => {
-      draft[x][y] = BOARD_COMPONENTS.OPENED
-    })
-    );
+    if (event.type === 'contextmenu') {
+      setFlag(x, y);
+    } else {
+      clickSquare(x, y);
+    }
   };
 
   return (
-    <Board data-testid="board" onClick={clickedBoard}>
-    {gameBoard.map((_, row) => (
-      gameBoard[row].map((_, col) => (
+    <Board data-testid="board" onClick={clickedBoard} onContextMenu={clickedBoard}>
+    {board.map((_, row) => (
+      board[row].map((_, col) => (
         <Square key={`${row},${col}`}
-        data-testid={`square-${board.current[row][col]}-${row},${col}`}
         data-cord={`${row},${col}`}>
-        {gameBoard[row][col]}
+        {renderSquare(board[row][col])}
         </Square>
       ))
     ))}
