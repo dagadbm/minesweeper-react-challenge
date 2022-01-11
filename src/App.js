@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { BoardGenerator } from './components/BoardGenerator';
+import { Board } from './components/Board';
 
 const Title = styled.h1`
   font-size: 1.5em;
@@ -10,7 +10,7 @@ function App() {
   return (
     <div>
       <Title>Minesweeper!</Title>
-      <BoardGenerator mines={10} size={10} />
+      <Board mines={10} size={10} />
     </div>
   );
 }
