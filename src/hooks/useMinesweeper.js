@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useReducer } from 'react';
 import produce from 'immer';
 
 const NEIGHBOURS = [
@@ -16,39 +16,35 @@ const SQUARE = () => ({
   hasMine: false,
   hasFlag: false,
   hasVisited: false,
-  value: '',
+  value: ' ',
 });
 
-const generateBoard = (size, mines) => {
-  const board = Array(size).fill()
+const generateBoard = (width, height, mines) => {
+  const board = Array(height).fill()
     .map(() =>
-      Array(size).fill().map(SQUARE)
+      Array(width).fill().map(SQUARE)
     );
 
-  return {
-    board,
-    placedMines: setMinesOnBoard(mines, board),
-  };
+  setMinesOnBoard(Math.min(mines, width * height), width, height, board);
+
+  return board;
 };
 
-const setMinesOnBoard =  (mines, board) => {
-  const placedMines = [];
+const setMinesOnBoard =  (mines, width, height, board) => {
   let remainingMines = mines;
   while (remainingMines > 0) {
-    const [x, y] = getRandomMinePosition(board.length);
+    const { x, y } = getRandomMinePosition(width, height);
     if(!board[x][y].hasMine) {
       board[x][y].hasMine = true;
       remainingMines--;
-      placedMines.push(board[x][y]);
     }
   }
-  return placedMines;
 };
 
-const getRandomMinePosition = (size) => [
-  Math.floor(Math.random() * size),
-  Math.floor(Math.random() * size),
-];
+const getRandomMinePosition = (width, height) => ({
+  x: Math.floor(Math.random() * height),
+  y: Math.floor(Math.random() * width),
+});
 
 const calculateMines = (x, y, board) =>
   NEIGHBOURS.reduce((acc, {x: nx, y: ny}) => {
@@ -64,13 +60,20 @@ const calculateMines = (x, y, board) =>
 
 const visitSquare = (x, y, board) => {
   const mines = calculateMines(x, y, board);
-  board[x][y].hasVisited = true;
   board[x][y].value = mines === 0 ? '' : `${mines}`;
 
-  if (board[x][y].hasMine) {
-    return 1;
+  // we dont expand if there is a mine, a flag, or the user clicked "a number"
+  if (board[x][y].hasFlag || board[x][y].hasMine || mines > 0) {
+    if (board[x][y].hasVisited) {
+      return 0;
+    } else {
+      // we only visit squares that are not flags
+      board[x][y].hasVisited = !board[x][y].hasFlag;
+      return 1;
+    }
   }
 
+  board[x][y].hasVisited = true;
   // else we traverse the board until we cant
   const sweep = [{x, y}];
   let visited = 1;
@@ -110,7 +113,6 @@ const visitSquare = (x, y, board) => {
 }
 
 export const GAME_STATUS = {
-  START: 'start',
   IN_PROGRESS: 'in_progress',
   VICTORY: 'victory',
   DEFEAT: 'defeat',
@@ -118,25 +120,25 @@ export const GAME_STATUS = {
 
 const initialState = {
   board: [[]],
-  mines: [], // reference to created mines for optimized access
+  mines: 0, // total number of mines
   squares: 0, // total number of squares
   visited: 0, // total number of visited squares
   flags: {
     correct: 0, // total number of correct flag guesses
     incorrect: 0, // total number of incorrect flag guesses
   },
-  gameStatus: GAME_STATUS.START,
+  gameStatus: GAME_STATUS.IN_PROGRESS,
 };
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case 'SETUP':
+    case 'START':
       return produce(state, draft => {
-        const { size, mines } = action.payload;
-        const { board, placedMines } = generateBoard(size, mines);
+        const { width, height, mines } = action.payload;
+        const board = generateBoard(width, height, mines);
         draft.board = board;
-        draft.mines = placedMines;
-        draft.squares = size * size;
+        draft.mines = mines;
+        draft.squares = width * height;
         draft.gameStatus = GAME_STATUS.IN_PROGRESS;
       });
     case 'VISIT':
@@ -151,13 +153,18 @@ const reducer = (state, action) => {
           return;
         }
 
-        draft.visited += visitSquare(action.payload.x, action.payload.y, draft.board, true);
+        draft.visited += visitSquare(action.payload.x, action.payload.y, draft.board);
       });
     case 'FLAG':
       return produce(state, draft => {
         const { board, flags } = draft;
         const { x, y } = action.payload;
         const square = board[x][y];
+
+        // we cant set flags on squares already visited
+        if (square.hasVisited) {
+          return;
+        }
 
         // update flag guess values
         // user is removing an existing flag
@@ -186,38 +193,35 @@ const reducer = (state, action) => {
     case 'CHECK_GAME_STATUS':
       return produce(state, draft => {
         const {
+          board,
           visited,
           squares,
           mines,
           flags,
           gameStatus
         } = draft;
-        switch (gameStatus) {
-          case GAME_STATUS.IN_PROGRESS: {
-            if (
-              (flags.correct === mines.length && flags.incorrect === 0)
-              || (visited === squares - mines.length && flags.incorrect === 0)
-            ) {
-              draft.gameStatus = GAME_STATUS.VICTORY;
-              // at the end of the game we show all mines with flags
-              mines.forEach((square) => {
-                square.hasFlag = true;
-              });
+          if (
+            (flags.correct === mines && flags.incorrect === 0)
+            || (visited === squares - mines && flags.incorrect === 0)
+          ) {
+            draft.gameStatus = GAME_STATUS.VICTORY;
+          }
+
+          // visit everything else (except mines) if we finished the game
+          if (gameStatus !== GAME_STATUS.IN_PROGRESS) {
+            const unvisited = board.reduce((acc, _, x) => {
+              board[x].forEach((_, y)  => {
+                if (!board[x][y].hasVisited && !board[x][y].hasMine) {
+                  acc.push({ x, y });
+                }
+              },[]);
+              return acc;
+            }, []);
+
+            for (const visit of unvisited) {
+              draft.visited += visitSquare(visit.x, visit.y, board);
             }
-            break;
           }
-          case GAME_STATUS.DEFEAT: {
-            // if defeat, at the end of the game we show all mines
-            mines.forEach((square) => {
-              square.visited = true;
-            });
-            break;
-          }
-          case GAME_STATUS.START:
-          case GAME_STATUS.VICTORY:
-          default:
-            break;
-        }
       });
     default:
       return state;
@@ -225,21 +229,24 @@ const reducer = (state, action) => {
 };
 
 
-const useMinesweeper = ({
-  size,
-  mines,
-}) => {
+const useMinesweeper = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { board, gameStatus } = state;
-  console.log(gameStatus);
 
-  useEffect(() => dispatch({
-    type: 'SETUP',
-    payload: {
-      size,
-      mines,
-    },
-  }), [mines, size, dispatch]);
+  const startGame = useCallback(({
+    width,
+    height,
+    mines,
+  }) => {
+    dispatch({
+      type: 'START',
+      payload: {
+        width,
+        height,
+        mines,
+      },
+    });
+  }, [dispatch]);
 
   const clickSquare = useCallback((x, y) => {
     dispatch({
@@ -262,6 +269,7 @@ const useMinesweeper = ({
   }, [dispatch]);
 
   return {
+    startGame,
     board,
     gameStatus,
     clickSquare,

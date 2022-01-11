@@ -1,38 +1,65 @@
-import useMinesweeper from '../hooks/useMinesweeper';
+import useMinesweeper, { GAME_STATUS } from '../hooks/useMinesweeper';
 import styled from 'styled-components';
 import { Square } from './Square';
+import { useEffect } from 'react';
 
 const StyledBoard = styled.div`
-  width: 420px;
+  display: grid;
+  grid-template-columns: repeat(${({ width }) => width}, min-content);
+  grid-template-rows: repeat(${({ height }) => height}, min-content);
   border: 1px solid black;
-  display: flex;
-  flex-wrap: wrap;
-  margin: 0px auto;
+  margin: 0 auto;
 `;
 
+const StyledGameStatus = styled.h2`
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+  font-size: 1.25em;
+`;
+
+
 export const Board = ({
+  width,
   mines,
-  size,
+  height,
 }) => {
-  const { board, clickSquare, setFlag, gameStatus } = useMinesweeper({ mines, size });
+  const { board, startGame, clickSquare, setFlag, gameStatus } = useMinesweeper();
+
+  useEffect(() => {
+    startGame({
+      width,
+      height,
+      mines,
+    });
+  }, [startGame, width, height, mines]);
 
   const onClickSquare = (x,y) => (event) => {
     event.preventDefault();
-    clickSquare(x, y);
+    if (gameStatus === GAME_STATUS.IN_PROGRESS) {
+      clickSquare(x, y);
+    }
   };
   const onRightClickSquare = (x,y) => (event) => {
     event.preventDefault();
-    setFlag(x, y);
+    if (gameStatus === GAME_STATUS.IN_PROGRESS) {
+      setFlag(x, y);
+    }
   };
 
   return (
-    <StyledBoard data-testid="board">
+    <>
+    <StyledBoard width={width} height={height} data-testid="board">
     {board.map((_, x) => (
       board[x].map((_, y) => (
-        <Square key={`${x},${y}`} square={board[x][y]} onClick={onClickSquare(x,y)} onRightClick={onRightClickSquare(x,y)}/>
+        <Square key={`${x},${y}`} square={board[x][y]} gameStatus={gameStatus} onClick={onClickSquare(x,y)} onRightClick={onRightClickSquare(x,y)}/>
       ))
     ))}
-    {gameStatus}
     </StyledBoard>
+    <StyledGameStatus>
+      {gameStatus === GAME_STATUS.VICTORY && 'You Won!'}
+      {gameStatus === GAME_STATUS.DEFEAT && 'You Lost!'}
+    </StyledGameStatus>
+    </>
   );
 };
