@@ -49,17 +49,17 @@ export const Board = ({
 
   return (
     <>
-    <StyledBoard width={width} height={height} data-testid="board">
-    {board.map((_, x) => (
-      board[x].map((_, y) => (
-        <Square key={`${x},${y}`} square={board[x][y]} gameStatus={gameStatus} onClick={onClickSquare(x,y)} onRightClick={onRightClickSquare(x,y)}/>
-      ))
-    ))}
-    </StyledBoard>
-    <StyledGameStatus>
-      {gameStatus === GAME_STATUS.VICTORY && 'You Won!'}
-      {gameStatus === GAME_STATUS.DEFEAT && 'You Lost!'}
-    </StyledGameStatus>
+      <StyledBoard width={width} height={height} data-testid="board">
+      {board.map((_, x) => (
+        board[x].map((_, y) => (
+          <Square key={`${x},${y}`} square={board[x][y]} gameStatus={gameStatus} onClick={onClickSquare(x,y)} onRightClick={onRightClickSquare(x,y)} />
+        ))
+      ))}
+      </StyledBoard>
+      <StyledGameStatus>
+        {gameStatus === GAME_STATUS.VICTORY && 'You Won!'}
+        {gameStatus === GAME_STATUS.DEFEAT && 'You Lost!'}
+      </StyledGameStatus>
     </>
   );
 };

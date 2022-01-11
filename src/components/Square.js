@@ -6,6 +6,7 @@ import { GAME_STATUS } from '../hooks/useMinesweeper';
 
 const StyledSquare = styled.div`
   cursor: pointer;
+  user-select: none;
   width: 40px;
   height: 40px;
   border: 1px solid black;
@@ -23,6 +24,16 @@ const StyledSquare = styled.div`
             background: red;
           `;
         }
+
+        if (square.hasVisited) {
+          return css`
+            background: white;
+          `;
+        } else {
+          return css`
+            background: darkgrey;
+          `;
+        }
       }
 
       if (square.hasVisited) {
@@ -38,13 +49,6 @@ const StyledSquare = styled.div`
         `;
       }
     }
-  }
-`;
-
-const VisitedSquare = styled(StyledSquare)`
-  background: white;
-  &:hover {
-    background: white;
   }
 `;
 
@@ -71,5 +75,5 @@ export const Square = ({
   onClick,
   onRightClick,
 }) => {
-  return <StyledSquare onClick={onClick} onContextMenu={onRightClick} square={square} gameStatus={gameStatus}>{renderSquareContent(square, gameStatus)}</StyledSquare>
+  return <StyledSquare data-testid="square" onClick={onClick} onContextMenu={onRightClick} square={square} gameStatus={gameStatus}>{renderSquareContent(square, gameStatus)}</StyledSquare>
 };

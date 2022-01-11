@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { Board } from './components/Board';
 import useInput from './hooks/useInput';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const Minesweeper = styled.div`
   display: flex;
@@ -66,11 +66,11 @@ function App() {
       <Minesweeper>
         <Form onSubmit={startGame}>
           <Label htmlFor="width">Width</Label>
-          <Input type="number" min="1" max="30" name="width" {...width }/>
+          <Input type="number" min="1" max="30" id="width" {...width }/>
           <Label htmlFor="height">Height</Label>
-          <Input type="number" min="1" max="30" name="height" {...height }/>
+          <Input type="number" min="1" max="30" id="height" {...height }/>
           <Label htmlFor="mines">Mines</Label>
-          <Input type="number" name="mines" min="1" max="200" {...mines }/>
+          <Input type="number" min="0" max="200" id="mines" {...mines }/>
           <Button type="submit">Start</Button>
         </Form>
         <Board {...board} />

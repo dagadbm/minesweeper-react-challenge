@@ -16,7 +16,7 @@ const SQUARE = () => ({
   hasMine: false,
   hasFlag: false,
   hasVisited: false,
-  value: ' ',
+  value: '',
 });
 
 const generateBoard = (width, height, mines) => {
