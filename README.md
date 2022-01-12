@@ -11,7 +11,7 @@
 
 Here's an example of how a fully revealed cluster might look. Here, 'M'
 indicates a mine:
- 
+ ```
 -----------------
 | 1 | 1 |   |   |
 | M | 1 | 1 | 1 |
@@ -20,6 +20,9 @@ indicates a mine:
 | 1 | 1 | 1 |   |
 |   |   |   |   |
 -----------------
+```
+
+[State of the repo before my changes](https://github.com/dagadbm/minesweeper-react-challenge/commit/b3368ca9a4a11abfdb84db013187187b3def18d6)
 
 ## Available Scripts
 
