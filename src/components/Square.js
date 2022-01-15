@@ -4,6 +4,18 @@ import { Mine } from './Mine';
 import { Flag } from './Flag';
 import { GAME_STATUS } from '../hooks/useMinesweeper';
 
+const getColorByValue = {
+  '': 'initial',
+  '1': 'blue',
+  '2': 'green',
+  '3': 'red',
+  '4': 'purple',
+  '5': 'maroon',
+  '6': 'turquoise',
+  '7': 'black',
+  '8': 'grey',
+};
+
 const StyledSquare = styled.div`
   cursor: pointer;
   user-select: none;
@@ -13,6 +25,7 @@ const StyledSquare = styled.div`
   font-size: 25px;
   text-align: center;
   line-height: 1.5;
+  color: ${({ square }) => getColorByValue[square.value]};
   ${
     ({ square, gameStatus }) => {
       if (gameStatus !== GAME_STATUS.IN_PROGRESS) {
