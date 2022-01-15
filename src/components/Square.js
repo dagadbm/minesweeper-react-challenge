@@ -40,7 +40,7 @@ const StyledSquare = styled.div`
 
         if (square.hasVisited) {
           return css`
-            background: white;
+            background: lightgrey;
           `;
         } else {
           return css`
@@ -51,7 +51,7 @@ const StyledSquare = styled.div`
 
       if (square.hasVisited) {
         return css`
-        background: white;
+          background: lightgrey;
         `;
       } else {
         return css`
