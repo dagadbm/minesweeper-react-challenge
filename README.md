@@ -24,6 +24,8 @@ indicates a mine:
 
 [State of the repo before my changes](https://github.com/dagadbm/minesweeper-react-challenge/commit/b3368ca9a4a11abfdb84db013187187b3def18d6)
 
+For a deployed version checkout https://dagadbm-minesweeper.netlify.app/
+
 ## Available Scripts
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
