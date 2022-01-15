@@ -20,6 +20,8 @@ const StyledSquare = styled.div`
   cursor: pointer;
   touch-action: manipulation;
   user-select: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
   width: 40px;
   height: 40px;
   border: 1px solid black;
