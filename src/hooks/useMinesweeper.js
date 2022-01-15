@@ -58,58 +58,114 @@ const calculateMines = (x, y, board) =>
     return acc;
   }, 0);
 
+const calculateFlags = (x, y, board) =>
+  NEIGHBOURS.reduce((acc, {x: nx, y: ny}) => {
+    try {
+      if (board[x + nx][y + ny].hasFlag) {
+        acc++;
+      }
+    } catch (e) {
+      // went outside of board
+    }
+    return acc;
+  }, 0);
+
+// visits a square.and respective surroundings
+// returns an object with the number of visits and the state of the game
 const visitSquare = (x, y, board) => {
   const mines = calculateMines(x, y, board);
-  board[x][y].value = mines === 0 ? '' : `${mines}`;
+  const square = board[x][y];
+  square.value = mines === 0 ? '' : `${mines}`;
 
-  // we dont expand if there is a mine, a flag, or the user clicked "a number"
-  if (board[x][y].hasFlag || board[x][y].hasMine || mines > 0) {
-    if (board[x][y].hasVisited) {
-      return 0;
-    } else {
-      // we only visit squares that are not flags
-      board[x][y].hasVisited = !board[x][y].hasFlag;
-      return 1;
-    }
+  // we dont expand if there is a flag
+  if (square.hasFlag) {
+    return { visited: 0, gameStatus: GAME_STATUS.IN_PROGRESS };
   }
 
-  board[x][y].hasVisited = true;
+  // we dont expand if there is a mine. we lost the game
+  if (square.hasMine) {
+    square.hasVisited = true;
+    return { visited: 1, gameStatus: GAME_STATUS.DEFEAT };
+  }
+
+  // if we clicked on a number
+  if (square.value) {
+    // we dont expand if we clicked on a number that was not visited
+    if (!square.hasVisited) {
+      square.hasVisited = true;
+      return { visited: 1, gameStatus: GAME_STATUS.IN_PROGRESS };
+    }
+
+    // if we have the same number of flags as the number of mines
+    // where the user clicked. we visit all the neighbours
+    // this is called a "chord" and is the most important feature of the game
+    if (mines === calculateFlags(x, y, board)) {
+      // the user can lose the game if he has the wrong flag placement
+      return visitNeighbours(x, y, true, board);
+    }
+
+    // we have already visited, nothing to do
+    return { visited: 0, gameStatus: GAME_STATUS.IN_PROGRESS };
+  }
+
+  // if we clicked on an empty visited square we dont do anything
+  if (square.hasVisited) {
+    return { visited: 0, gameStatus: GAME_STATUS.IN_PROGRESS };
+  } else {
+    square.hasVisited = true;
+  }
+
   // else we traverse the board until we cant
+  return visitNeighbours(x, y, false, board);
+}
+
+const visitNeighbours = (x, y, loseOnMissingFlags, board) => {
   const sweep = [{x, y}];
-  let visited = 1;
+  let visited = 0;
   while (sweep.length) {
     const { x: tx, y: ty } = sweep.pop(); // traverse x/y
-    visited += NEIGHBOURS.reduce((visit, neighbour) => {
+    for (let neighbour of NEIGHBOURS) {
       // neighbour x/y
       const nx = tx + neighbour.x;
       const ny = ty + neighbour.y;
 
-      let square;
+      // neighbour square
+      let nSquare;
       try {
-        square = board[nx][ny];
-        if (square.hasFlag
-          || square.hasMine
-          || square.hasVisited) {
-          return visit;
+        nSquare = board[nx][ny];
+        if (nSquare.hasVisited) {
+          continue;
+        }
+
+        if (loseOnMissingFlags) {
+          // the user made a mistake, the mine is not covered by a flag
+          if (nSquare.hasMine && !nSquare.hasFlag) {
+            nSquare.hasVisited = true;
+            return { visited, gameStatus: GAME_STATUS.DEFEAT };
+          }
+        }
+
+        if (nSquare.hasFlag
+          || nSquare.hasMine
+          || nSquare.hasVisited) {
+          continue;
         }
       } catch(e) {
         // went outside of board
-        return visit;
+        continue;
       }
 
       const mines = calculateMines(nx, ny, board);
-      square.hasVisited = true;
-      square.value = mines === 0 ? '' : `${mines}`;
-      visit += 1;
+      nSquare.hasVisited = true;
+      nSquare.value = mines === 0 ? '' : `${mines}`;
+      visited += 1;
 
       if (mines === 0) {
         sweep.push({ x: nx, y: ny });
       }
-      return visit;
-    }, 0);
+    };
   }
-
-  return visited;
+  return { visited, gameStatus: GAME_STATUS.IN_PROGRESS };
 }
 
 export const GAME_STATUS = {
@@ -145,15 +201,9 @@ const reducer = (state, action) => {
       return produce(state, draft => {
         const { board } = draft;
         const { x, y} = action.payload;
-
-        if (board[x][y].hasMine) {
-          board[x][y].hasVisited = true;
-          draft.visited += 1;
-          draft.gameStatus = GAME_STATUS.DEFEAT;
-          return;
-        }
-
-        draft.visited += visitSquare(action.payload.x, action.payload.y, draft.board);
+        const { visited, gameStatus } = visitSquare(action.payload.x, action.payload.y, draft.board);
+        draft.visited += visited;
+        draft.gameStatus = gameStatus;
       });
     case 'FLAG':
       return produce(state, draft => {
@@ -190,7 +240,7 @@ const reducer = (state, action) => {
 
         square.hasFlag = !square.hasFlag;
       });
-    case 'CHECK_GAME_STATUS':
+    case 'CHECK_FOR_VICTORY':
       return produce(state, draft => {
         const {
           board,
@@ -219,7 +269,8 @@ const reducer = (state, action) => {
             }, []);
 
             for (const visit of unvisited) {
-              draft.visited += visitSquare(visit.x, visit.y, board);
+              const { visited } = visitSquare(visit.x, visit.y, board);
+              draft.visited += visited;
             }
           }
       });
@@ -254,7 +305,7 @@ const useMinesweeper = () => {
       payload: { x, y },
     });
     dispatch({
-      type: 'CHECK_GAME_STATUS',
+      type: 'CHECK_FOR_VICTORY',
     });
   }, [dispatch]);
 
@@ -264,7 +315,7 @@ const useMinesweeper = () => {
       payload: { x, y },
     });
     dispatch({
-      type: 'CHECK_GAME_STATUS',
+      type: 'CHECK_FOR_VICTORY',
     });
   }, [dispatch]);
 
