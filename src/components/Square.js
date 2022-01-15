@@ -18,6 +18,7 @@ const getColorByValue = {
 
 const StyledSquare = styled.div`
   cursor: pointer;
+  touch-action: manipulation;
   user-select: none;
   width: 40px;
   height: 40px;
