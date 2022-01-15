@@ -9,9 +9,9 @@ const getColorByValue = {
   '1': 'blue',
   '2': 'green',
   '3': 'red',
-  '4': 'purple',
+  '4': 'midnightblue',
   '5': 'maroon',
-  '6': 'turquoise',
+  '6': 'lightseagreen',
   '7': 'black',
   '8': 'grey',
 };
