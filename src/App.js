@@ -124,11 +124,11 @@ function App() {
       </Difficulty>
         <Form onSubmit={startGame(GAME_DIFFICULTY.CUSTOM)}>
           <Label htmlFor="width">Width</Label>
-          <Input type="number" min="1" max="30" id="width" {...width }/>
+          <Input type="number" min="1" max="50" id="width" {...width }/>
           <Label htmlFor="height">Height</Label>
-          <Input type="number" min="1" max="30" id="height" {...height }/>
+          <Input type="number" min="1" max="50" id="height" {...height }/>
           <Label htmlFor="mines">Mines</Label>
-          <Input type="number" min="0" max="200" id="mines" {...mines }/>
+          <Input type="number" min="0" max="500" id="mines" {...mines }/>
           <Button type="submit">Custom</Button>
         </Form>
         {board && <Board {...board} />}
