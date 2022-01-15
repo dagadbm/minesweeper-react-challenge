@@ -111,12 +111,17 @@ const visitSquare = (x, y, board) => {
   // if we clicked on an empty visited square we dont do anything
   if (square.hasVisited) {
     return { visited: 0, gameStatus: GAME_STATUS.IN_PROGRESS };
-  } else {
-    square.hasVisited = true;
   }
 
-  // else we traverse the board until we cant
-  return visitNeighbours(x, y, false, board);
+  // visit this square
+  square.hasVisited = true;
+
+  const result = visitNeighbours(x, y, false, board);
+
+  return {
+    visited: result.visited + 1, // for this visited square
+    gameStatus: result.gameStatus,
+  }
 }
 
 const visitNeighbours = (x, y, loseOnMissingFlags, board) => {
@@ -199,8 +204,6 @@ const reducer = (state, action) => {
       });
     case 'VISIT':
       return produce(state, draft => {
-        const { board } = draft;
-        const { x, y} = action.payload;
         const { visited, gameStatus } = visitSquare(action.payload.x, action.payload.y, draft.board);
         draft.visited += visited;
         draft.gameStatus = gameStatus;
