@@ -1,5 +1,7 @@
 import styled from 'styled-components';
 import { Board } from './components/Board';
+import { Flag } from './components/Flag';
+import { Mine } from './components/Mine';
 import useInput from './hooks/useInput';
 import { useState } from 'react';
 
@@ -77,15 +79,23 @@ const Input = styled.input`
 
 const Button = styled.button`
   font-size: 1.2em;
-  width: 64px;
   width: fit-content;
   padding: 4px 8px;
+`;
+
+const FlagModeButton = styled(Button)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
 `;
 
 function App() {
   const width = useInput(9);
   const height = useInput(9);
   const mines = useInput(10);
+  const [hasFlagMode, setFlagMode] = useState(false);
   const [board, setBoard] = useState({
     width: Number(width.value),
     height: Number(height.value),
@@ -113,6 +123,11 @@ function App() {
     }
   };
 
+  const toggleFlagMode = (event) => {
+    event.preventDefault();
+    setFlagMode(!hasFlagMode);
+  };
+
   return (
     <>
       <Title>Minesweeper!</Title>
@@ -121,6 +136,9 @@ function App() {
         <Button type="button" onClick={startGame(GAME_DIFFICULTY.BEGINNER)}>Beginner</Button>
         <Button type="button" onClick={startGame(GAME_DIFFICULTY.INTERMEDIATE)}>Intermediate</Button>
         <Button type="button" onClick={startGame(GAME_DIFFICULTY.EXPERT)}>Expert</Button>
+        <FlagModeButton type="button" onClick={toggleFlagMode}>
+          {hasFlagMode ? <Flag /> : <Mine />}
+        </FlagModeButton>
       </Difficulty>
         <Form onSubmit={startGame(GAME_DIFFICULTY.CUSTOM)}>
           <Label htmlFor="width">Width</Label>
@@ -131,7 +149,7 @@ function App() {
           <Input type="number" min="0" max="500" id="mines" {...mines }/>
           <Button type="submit">Custom</Button>
         </Form>
-        {board && <Board {...board} />}
+        {board && <Board {...board} flagMode={hasFlagMode} />}
       </Minesweeper>
     </>
   );

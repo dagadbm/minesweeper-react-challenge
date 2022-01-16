@@ -23,6 +23,7 @@ export const Board = ({
   width,
   mines,
   height,
+  flagMode
 }) => {
   const { board, startGame, clickSquare, setFlag, gameStatus } = useMinesweeper();
 
@@ -36,13 +37,26 @@ export const Board = ({
 
   const onClickSquare = (x,y) => (event) => {
     event.preventDefault();
-    if (gameStatus === GAME_STATUS.IN_PROGRESS) {
+    if (gameStatus !== GAME_STATUS.IN_PROGRESS) {
+      return;
+    }
+
+    if (flagMode) {
+      setFlag(x, y);
+    } else {
       clickSquare(x, y);
     }
   };
+
   const onRightClickSquare = (x,y) => (event) => {
     event.preventDefault();
-    if (gameStatus === GAME_STATUS.IN_PROGRESS) {
+    if (gameStatus !== GAME_STATUS.IN_PROGRESS) {
+      return;
+    }
+
+    if (flagMode) {
+      clickSquare(x, y);
+    } else {
       setFlag(x, y);
     }
   };
