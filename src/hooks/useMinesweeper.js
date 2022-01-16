@@ -79,13 +79,13 @@ const visitSquare = (x, y, board) => {
 
   // we dont expand if there is a flag
   if (square.hasFlag) {
-    return { visited: 0, gameStatus: GAME_STATUS.IN_PROGRESS };
+    return { visited: 0, flagsRemoved: 0, gameStatus: GAME_STATUS.IN_PROGRESS };
   }
 
   // we dont expand if there is a mine. we lost the game
   if (square.hasMine) {
     square.hasVisited = true;
-    return { visited: 1, gameStatus: GAME_STATUS.DEFEAT };
+    return { visited: 1, flagsRemoved: 0, gameStatus: GAME_STATUS.DEFEAT };
   }
 
   // if we clicked on a number
@@ -93,7 +93,7 @@ const visitSquare = (x, y, board) => {
     // we dont expand if we clicked on a number that was not visited
     if (!square.hasVisited) {
       square.hasVisited = true;
-      return { visited: 1, gameStatus: GAME_STATUS.IN_PROGRESS };
+      return { visited: 1, flagsRemoved: 0, gameStatus: GAME_STATUS.IN_PROGRESS };
     }
 
     // if we have the same number of flags as the number of mines
@@ -105,12 +105,12 @@ const visitSquare = (x, y, board) => {
     }
 
     // we have already visited, nothing to do
-    return { visited: 0, gameStatus: GAME_STATUS.IN_PROGRESS };
+    return { visited: 0, flagsRemoved: 0, gameStatus: GAME_STATUS.IN_PROGRESS };
   }
 
   // if we clicked on an empty visited square we dont do anything
   if (square.hasVisited) {
-    return { visited: 0, gameStatus: GAME_STATUS.IN_PROGRESS };
+    return { visited: 0, flagsRemoved: 0, gameStatus: GAME_STATUS.IN_PROGRESS };
   }
 
   // visit this square
@@ -120,6 +120,7 @@ const visitSquare = (x, y, board) => {
 
   return {
     visited: result.visited + 1, // for this visited square
+    flagsRemoved: result.flagsRemoved,
     gameStatus: result.gameStatus,
   }
 }
@@ -127,6 +128,7 @@ const visitSquare = (x, y, board) => {
 const visitNeighbours = (x, y, loseOnMissingFlags, board) => {
   const sweep = [{x, y}];
   let visited = 0;
+  let flagsRemoved = 0;
   while (sweep.length) {
     const { x: tx, y: ty } = sweep.pop(); // traverse x/y
     for (let neighbour of NEIGHBOURS) {
@@ -142,18 +144,15 @@ const visitNeighbours = (x, y, loseOnMissingFlags, board) => {
           continue;
         }
 
-        if (loseOnMissingFlags) {
+        if (nSquare.hasMine) {
           // the user made a mistake, the mine is not covered by a flag
-          if (nSquare.hasMine && !nSquare.hasFlag) {
+          if (loseOnMissingFlags && !nSquare.hasFlag) {
             nSquare.hasVisited = true;
-            return { visited, gameStatus: GAME_STATUS.DEFEAT };
+            visited += 1;
+            return { visited, flagsRemoved, gameStatus: GAME_STATUS.DEFEAT };
+          } else {
+            continue;
           }
-        }
-
-        if (nSquare.hasFlag
-          || nSquare.hasMine
-          || nSquare.hasVisited) {
-          continue;
         }
       } catch(e) {
         // went outside of board
@@ -165,12 +164,18 @@ const visitNeighbours = (x, y, loseOnMissingFlags, board) => {
       nSquare.value = mines === 0 ? '' : `${mines}`;
       visited += 1;
 
+      // this is a useless flag so we remove it
+      if (nSquare.hasFlag) {
+        nSquare.hasFlag = false;
+        flagsRemoved += 1;
+      }
+
       if (mines === 0) {
         sweep.push({ x: nx, y: ny });
       }
     };
   }
-  return { visited, gameStatus: GAME_STATUS.IN_PROGRESS };
+  return { visited, flagsRemoved, gameStatus: GAME_STATUS.IN_PROGRESS };
 }
 
 export const GAME_STATUS = {
@@ -204,9 +209,10 @@ const reducer = (state, action) => {
       });
     case 'VISIT':
       return produce(state, draft => {
-        const { visited, gameStatus } = visitSquare(action.payload.x, action.payload.y, draft.board);
+        const { visited, flagsRemoved, gameStatus } = visitSquare(action.payload.x, action.payload.y, draft.board);
         draft.visited += visited;
         draft.gameStatus = gameStatus;
+        draft.flags.incorrect -= flagsRemoved;
       });
     case 'FLAG':
       return produce(state, draft => {
