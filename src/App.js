@@ -40,6 +40,7 @@ const gameSettings = (gameDifficulty) => {
 const Minesweeper = styled.div`
   display: flex;
   flex-flow: column;
+  margin: 16px 0;
   & > * {
     margin-bottom: 16px;
   }
@@ -53,33 +54,19 @@ const Difficulty = styled.div`
   }
 `;
 
-
-const Title = styled.h1`
-  display: flex;
-  justify-content: center;
-  font-size: 1.5em;
-  margin: 16px 0;
-`;
-
 const Form = styled.form`
   display: flex;
   justify-content: center;
 `;
 
-const Label = styled.label`
-  display: flex;
-  align-items: center;
-  margin-right: 8px;
-`;
-
 const Input = styled.input`
-  font-size: 1.2em;
   width: fit-content;
   margin-right: 8px;
+  width: 56px;
+  height: 40px;
 `;
 
 const Button = styled.button`
-  font-size: 1.2em;
   width: fit-content;
   padding: 4px 8px;
 `;
@@ -93,14 +80,14 @@ const FlagModeButton = styled(Button)`
 `;
 
 function App() {
-  const width = useInput(9);
-  const height = useInput(9);
-  const mines = useInput(10);
+  const width = useInput();
+  const height = useInput();
+  const mines = useInput();
   const [hasFlagMode, setFlagMode] = useState(false);
   const [board, setBoard] = useState({
-    width: Number(width.value),
-    height: Number(height.value),
-    mines: Number(mines.value),
+    width: Number(9),
+    height: Number(9),
+    mines: Number(10),
   });
 
   const startGame = (gameDifficulty) => (event) => {
@@ -113,12 +100,8 @@ function App() {
         key: Date.now(), // force re-render
       });
     } else {
-      const settings = gameSettings(gameDifficulty);
-      width.setValue(settings.width);
-      height.setValue(settings.height);
-      mines.setValue(settings.mines);
       setBoard({
-        ...settings,
+        ...gameSettings(gameDifficulty),
         key: Date.now(), // force re-render
       });
     }
@@ -131,7 +114,6 @@ function App() {
 
   return (
     <>
-      <Title>Minesweeper!</Title>
       <Minesweeper>
       <Difficulty>
         <Button type="button" onClick={startGame(GAME_DIFFICULTY.BEGINNER)}>Beginner</Button>
@@ -142,12 +124,9 @@ function App() {
         </FlagModeButton>
       </Difficulty>
         <Form onSubmit={startGame(GAME_DIFFICULTY.CUSTOM)}>
-          <Label htmlFor="width">Width</Label>
-          <Input type="number" min="1" max="50" id="width" {...width }/>
-          <Label htmlFor="height">Height</Label>
-          <Input type="number" min="1" max="50" id="height" {...height }/>
-          <Label htmlFor="mines">Mines</Label>
-          <Input type="number" min="0" max="500" id="mines" {...mines }/>
+          <Input type="number" min="1" max="50" placeholder="width" {...width }/>
+          <Input type="number" min="1" max="50" placeholder="height" {...height }/>
+          <Input type="number" min="0" max="500" placeholder="mines" {...mines }/>
           <Button type="submit">Custom</Button>
         </Form>
         {board && <Board {...board} flagMode={hasFlagMode} />}
