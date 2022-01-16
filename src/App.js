@@ -58,6 +58,7 @@ const Title = styled.h1`
   display: flex;
   justify-content: center;
   font-size: 1.5em;
+  margin: 16px 0;
 `;
 
 const Form = styled.form`

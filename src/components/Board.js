@@ -5,10 +5,11 @@ import { useEffect } from 'react';
 
 const StyledBoard = styled.div`
   display: grid;
-  grid-template-columns: repeat(${({ width }) => width}, min-content);
-  grid-template-rows: repeat(${({ height }) => height}, min-content);
+  grid-template-columns: repeat(${({ width }) => width}, 40px);
+  grid-template-rows: repeat(${({ height }) => height}, 40px);
   border: 1px solid black;
   margin: 0 auto;
+  justify-content: center;
 `;
 
 const StyledGameStatus = styled.h2`
