@@ -65,7 +65,7 @@ const Form = styled.form`
 const Input = styled.input`
   width: fit-content;
   margin-right: 8px;
-  width: 56px;
+  width: 64px;
   height: 40px;
 `;
 
