@@ -40,8 +40,6 @@ const gameSettings = (gameDifficulty) => {
 const Minesweeper = styled.div`
   display: flex;
   flex-flow: column;
-  justify-content: center;
-  align-items: center;
   margin: 16px 0;
   & > * {
     margin-bottom: 16px;
@@ -57,7 +55,6 @@ const Difficulty = styled.div`
 `;
 
 const Form = styled.form`
-
   display: flex;
   justify-content: center;
 `;

@@ -8,8 +8,17 @@ const StyledBoard = styled.div`
   grid-template-columns: repeat(${({ width }) => width}, 40px);
   grid-template-rows: repeat(${({ height }) => height}, 40px);
   border: 1px solid black;
-  width: fit-content;
+  margin: 0 auto;
+  justify-content: center;
 `;
+
+const StyledGameStatus = styled.h2`
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+  font-size: 1.25em;
+`;
+
 
 export const Board = ({
   width,
@@ -62,6 +71,10 @@ export const Board = ({
         ))
       ))}
       </StyledBoard>
+      <StyledGameStatus>
+        {gameStatus === GAME_STATUS.VICTORY && 'You Won!'}
+        {gameStatus === GAME_STATUS.DEFEAT && 'You Lost!'}
+      </StyledGameStatus>
     </>
   );
 };
